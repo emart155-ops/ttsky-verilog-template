@@ -1,276 +1,128 @@
-# Reaction Timer Game Design Documentation
-
-## Design Description
-
-This project implements an **interactive Reaction Timer Game** in Verilog - a fun and engaging way to test your reflexes! Unlike traditional arithmetic circuits, this design creates an interactive gaming experience that measures human reaction time.
-
-### Functionality
-
-The Reaction Timer Game works like this:
-1. **Press START** - The game begins and a "Ready" LED lights up
-2. **Wait for GO** - After a random delay (50-200 clock cycles), a "GO" LED lights up
-3. **React Fast!** - Press the reaction button as quickly as possible when you see GO
-4. **See Your Time** - The result displays your reaction time in clock cycles (0-254)
-5. **Play Again** - Press START to play another round!
-
-**Game States:**
-- **IDLE**: Waiting for the game to start
-- **READY**: Game started, waiting for random delay
-- **WAIT**: Counting down the random delay
-- **GO**: GO signal active - measuring reaction time!
-- **TOO_EARLY**: User pressed before GO (error code: 255)
-- **DONE**: Reaction time measured and displayed
-
-**Inputs:**
-- `clk`: Clock signal for synchronous operation
-- `reset`: Asynchronous reset to initialize the game
-- `start`: Button to start a new game round
-- `react_button`: Button pressed when user sees GO signal
-
-**Outputs:**
-- `ready_led`: LED indicating game is ready (waiting for GO)
-- `go_led`: LED indicating GO signal (user should react now!)
-- `result[7:0]`: Reaction time in clock cycles (0-254), or error codes:
-  - `255`: Too early (pressed before GO)
-  - `254`: Too slow (didn't react in time)
-- `state[2:0]`: Current game state (for debugging/monitoring)
+Reaction Timer Game Design Documentation
+Design Overview
 
-### Design Characteristics
-
-- **State Machine**: Uses a 6-state finite state machine to control game flow
-- **Random Delay**: Implements Linear Feedback Shift Register (LFSR) for pseudo-random delays between 50-200 clock cycles
-- **Reaction Measurement**: Counts clock cycles from GO signal until user reaction
-- **Error Detection**: Detects if user presses too early (before GO) or too slow (timeout)
-- **Interactive**: Real-time feedback through LEDs and result display
-- **Replayable**: Can play multiple rounds by pressing START again
-
-### Why This Design is Fun and Creative
+This project implements a single-player Reaction Timer Game in Verilog using a synchronous finite state machine (FSM). The design measures the number of clock cycles between a visual GO signal and a user button press, providing a hardware-based reaction time measurement. I got the idea for this originally from my CSE100 clas but tried to make it my own but making this a single player mode that only allows a user to test their own reaction time!
 
-1. **Interactive Gaming**: Unlike passive circuits, this design creates an engaging game that users can play and compete with
-2. **Real-World Application**: Reaction time testing is used in sports, gaming, and cognitive assessments
-3. **Challenge Factor**: The random delay prevents cheating and makes each round unique
-4. **Visual Feedback**: LEDs provide immediate visual feedback (Ready → GO)
-5. **Competitive Element**: Players can try to beat their best time or compete with friends
-6. **Educational Value**: Demonstrates state machines, timing, random number generation, and human-computer interaction
-7. **Demonstrable**: Easy to show off - just connect buttons and LEDs and play!
+The system operates in a single clock domain and is suitable for FPGA or ASIC implementation.
 
-### Gameplay Features
+Functional Description
 
-- **Random Timing**: Each round has a different delay, preventing anticipation
-- **Anti-Cheat**: Detects if you press too early (before GO signal)
-- **Timeout Protection**: Times out if reaction is too slow (>255 cycles)
-- **Clear Feedback**: Visual LEDs and numeric result display
-- **Multiple Rounds**: Play as many times as you want
+The game operates as follows:
+	1.	The user presses START, transitioning the system from IDLE to READY.
+	2.	A pseudo-random delay between 50 and 200 clock cycles is generated.
+	3.	After the delay expires, the GO LED is asserted.
+	4.	The reaction counter begins incrementing.
+	5.	When the user presses the reaction button, the counter value is stored as the reaction time.
+	6.	The system enters DONE and waits for another START signal.
 
-### Use Cases
 
-- **Gaming**: Fun interactive game for demos and maker fairs
-- **Sports Training**: Reaction time measurement for athletes
-- **Cognitive Testing**: Simple cognitive assessment tool
-- **Educational**: Teaching state machines, timing, and interactive design
-- **Entertainment**: Party game or competition between friends
-- **Research**: Studying human reaction times and reflexes
+State Machine
 
-## Testbench Description
+The design uses a 6-state FSM:
 
-The testbench (`reaction_timer_tb.v`) comprehensively tests all functionality of the Reaction Timer Game design.
+IDLE       - Waiting for START input
+READY      - Game initialized, preparing delay
+WAIT       - Counting pseudo-random delay
+GO         - Measuring reaction time
+TOO_EARLY  - Reaction button pressed before GO
+DONE       - Reaction time stored and displayed
 
-### Test Coverage
+State transitions occur on the rising edge of the clock.
 
-The testbench includes **multiple test cases** covering:
 
-1. **Reset Functionality (2 tests)**:
-   - Verifies reset initializes to IDLE state
-   - Verifies LEDs are off after reset
+Inputs and Outputs
 
-2. **Game Start (2 tests)**:
-   - Verifies START button transitions to READY state
-   - Verifies Ready LED turns on
+Inputs:
+	•	clk           : System clock
+	•	reset         : Asynchronous reset
+	•	start         : Begins a new round
+	•	react_button  : User reaction input
 
-3. **Delay Wait (1 test)**:
-   - Verifies transition from READY to WAIT state
-   - Tests random delay mechanism
+Outputs:
+	•	ready_led     : Indicates delay period
+	•	go_led        : Indicates reaction measurement period
+	•	result[7:0]   : Reaction time or error code
+	•	state[2:0]    : Current FSM state (debugging)
 
-4. **Too Early Reaction (2 tests)**:
-   - Tests detection of button press before GO signal
-   - Verifies error code 255 is set
-   - Verifies transition to TOO_EARLY state
+Error Codes:
+	•	255 : Too early (button pressed before GO)
+	•	254 : Too slow (reaction counter timeout)
 
-5. **Normal Reaction (3 tests)**:
-   - Verifies GO signal appears after delay
-   - Tests reaction time measurement
-   - Verifies valid reaction time is recorded (0-254 range)
-   - Verifies transition to DONE state
 
-6. **State Transitions (1 test)**:
-   - Verifies all state transitions work correctly
-   - Tests state machine flow
+Key Design Components
 
-7. **Multiple Rounds (1 test)**:
-   - Tests ability to play multiple game rounds
-   - Verifies game can restart after completion
+Linear Feedback Shift Register (LFSR)
 
-8. **LED Behavior (2 tests)**:
-   - Verifies LED outputs in different states
-   - Tests Ready and GO LED timing
+An 8-bit LFSR generates pseudo-random delays using feedback taps at bits 7, 5, 4, and 0. The generated value is scaled to produce a delay between 50 and 200 clock cycles. This prevents predictable timing between rounds.
 
-### Testbench Features
+Delay Counter
 
-- **Clock Generation**: Creates realistic clock signal for testing
-- **State Verification**: Checks that state machine transitions correctly
-- **LED Testing**: Verifies LED outputs match expected states
-- **Timing Tests**: Tests reaction time measurement accuracy
-- **Error Case Testing**: Tests too early and timeout scenarios
-- **Multiple Rounds**: Tests replay functionality
-- **Comprehensive Reporting**: Detailed pass/fail reporting with state and timing information
-- **Summary Statistics**: Final summary of all tests
+Counts from 0 to the generated delay target during the WAIT state.
 
-### Justification for Test Sufficiency
+Reaction Counter
 
-The testbench is sufficient to verify the Reaction Timer Game design because:
+Begins counting when the GO signal is asserted and stops when the user presses the reaction button or when the counter saturates.
 
-1. **Complete State Coverage**: All 6 game states (IDLE, READY, WAIT, GO, TOO_EARLY, DONE) are tested with appropriate transitions.
+Finite State Machine
 
-2. **Reset Verification**: Ensures the design initializes correctly from a known state.
+Controls all state transitions, error handling, and output behavior.
 
-3. **Normal Operation**: Tests the complete game flow from start to finish, including:
-   - Random delay generation
-   - GO signal appearance
-   - Reaction time measurement
-   - Result display
 
-4. **Error Cases**: Tests both error conditions:
-   - Too early reaction (pressing before GO)
-   - Timeout handling (if implemented)
 
-5. **State Machine Correctness**: Verifies all state transitions work as expected.
+Testbench Description
 
-6. **LED Behavior**: Tests that visual feedback (Ready and GO LEDs) work correctly in each state.
+The testbench (reaction_timer_tb.v) verifies correct functionality through directed test cases.
 
-7. **Replay Functionality**: Verifies that multiple game rounds can be played.
+Test Coverage:
+	•	Reset initialization to IDLE state
+	•	START transition to READY
+	•	Proper delay generation and WAIT state operation
+	•	Detection of early button press
+	•	GO signal assertion after delay
+	•	Accurate reaction time capture
+	•	Timeout behavior
+	•	Correct LED output behavior
+	•	Multiple round operation
 
-8. **Timing Verification**: Tests that reaction times are measured and stored correctly.
+All six FSM states are exercised and state transitions are validated.
 
-9. **Edge Cases**: Tests boundary conditions and state transitions.
 
-The testbench provides high confidence that the Reaction Timer Game functions correctly for all game states, user interactions, and edge cases, making it ready for TinyTapeout submission.
+Test Sufficiency
 
-## How it works
+The testbench provides full state coverage and validates:
+	•	Normal gameplay flow
+	•	Error conditions (too early and timeout)
+	•	Counter functionality
+	•	Output correctness
+	•	Replay capability
 
-The Reaction Timer Game operates using a 6-state finite state machine that controls the entire game flow:
+All state transitions and edge cases are tested, providing confidence that the design operates correctly under expected use conditions.
 
-1. **IDLE State**: The game starts here, waiting for the user to press the START button. All outputs are cleared.
 
-2. **READY State**: When START is pressed, the game enters READY state. The Ready LED lights up, and a random delay (50-200 clock cycles) is generated using a Linear Feedback Shift Register (LFSR). If the user presses the reaction button during this state, they're penalized with error code 255 (too early).
+Local Simulation
 
-3. **WAIT State**: The game transitions here immediately after READY. The Ready LED remains on while the system counts down the random delay. The user must wait patiently - pressing the button here also results in error code 255.
+To simulate using Icarus Verilog:
 
-4. **GO State**: Once the delay counter reaches the target, the GO LED lights up and the Ready LED turns off. The reaction timer starts counting clock cycles. The user should press the reaction button as quickly as possible.
+iverilog -o reaction_timer_tb.vvp reaction_timer.v reaction_timer_tb.v
+vvp reaction_timer_tb.vvp
 
-5. **DONE State**: When the user presses the reaction button, the current reaction counter value is stored in the result register and displayed. The game waits for START to be pressed again to begin a new round.
+A successful run reports all tests passing.
 
-6. **TOO_EARLY State**: If the user presses the reaction button before the GO signal appears (in READY or WAIT states), the game enters TOO_EARLY state, sets result to 255, and waits for START to reset.
 
-**Key Components:**
-- **LFSR (Linear Feedback Shift Register)**: Generates pseudo-random delays using polynomial feedback (taps at bits 7, 5, 4, and 0) to ensure each game round has a different timing.
-- **Delay Counter**: Counts from 0 to the randomly generated target (50-200 cycles).
-- **Reaction Counter**: Measures the time from GO signal to user reaction (0-254 cycles).
-- **State Machine**: Controls all transitions and ensures proper game flow.
+Hardware Integration (TinyTapeout)
 
-The design uses synchronous logic with a single clock domain, making it suitable for FPGA and ASIC implementation.
+Signal mapping:
 
-## How to test
+ui_in[0]  -> START
+ui_in[1]  -> Reaction button
+uo_out[0] -> Ready LED
+uo_out[1] -> GO LED
+uo_out[7:2] -> Reaction time display
 
-### Local Testing
+The design operates continuously using the provided clock and supports repeated gameplay.
 
-To test the design locally using Icarus Verilog:
 
-```bash
-# Compile the design and testbench
-iverilog -o test/reaction_timer_tb.vvp src/reaction_timer.v test/reaction_timer_tb.v
 
-# Run the simulation
-vvp test/reaction_timer_tb.vvp
-```
+GenAI Usage Statement
 
-Or use the Makefile:
-
-```bash
-make test
-```
-
-### Expected Test Results
-
-The testbench will run 15 test cases covering:
-- Reset functionality
-- Game start and state transitions
-- Too-early reaction detection
-- Normal reaction timing
-- Multiple game rounds
-- LED behavior
-
-A successful test run should show:
-```
-========================================
-Test Summary
-========================================
-Total tests:          15
-Passed:               15
-Failed:                0
-========================================
-SUCCESS: All tests passed!
-```
-
-### Testing Individual Features
-
-**Test Reset:**
-- Assert reset signal
-- Verify state = IDLE (000)
-- Verify all LEDs are off
-
-**Test Normal Gameplay:**
-1. Press START (ui_in[0] = 1)
-2. Wait for Ready LED (uo_out[0] = 1)
-3. Wait for GO LED (uo_out[1] = 1)
-4. Press reaction button quickly (ui_in[1] = 1)
-5. Check result (uo_out[7:2]) shows valid reaction time
-
-**Test Too Early Detection:**
-1. Press START
-2. Immediately press reaction button before GO appears
-3. Verify result = 255 (error code)
-
-### Hardware Testing (TinyTapeout)
-
-When implemented on TinyTapeout hardware:
-- Connect START button to ui_in[0]
-- Connect reaction button to ui_in[1]
-- Connect Ready LED to uo_out[0]
-- Connect GO LED to uo_out[1]
-- Connect 6-bit display to uo_out[7:2] for reaction time
-
-The game will run automatically with the provided clock signal, and users can interact with it in real-time.
-
-## GenAI Tool Usage
-
-This project was created with assistance from GenAI tools (specifically, Cursor's AI assistant). The GenAI tool was used to:
-
-1. **Creative Design Concept**: Collaborated to develop the Reaction Timer Game idea as an interactive and engaging alternative to standard arithmetic circuits.
-
-2. **Code Generation**: Generated the Verilog code for the reaction timer module, including:
-   - 6-state finite state machine for game control
-   - LFSR implementation for random delay generation
-   - Reaction time counter and measurement logic
-   - Error detection for too-early and timeout cases
-   - State transition logic
-
-3. **Testbench Development**: Assisted in creating comprehensive test cases covering:
-   - All game states and transitions
-   - Normal gameplay flow
-   - Error conditions (too early, timeout)
-   - Multiple game rounds
-   - LED behavior verification
-
-4. **Documentation**: Helped structure and write this documentation, including gameplay description, design characteristics, and test justification.
-
-The design concept, game mechanics, state machine design, and implementation approach were developed collaboratively with the GenAI tool. The final design represents a complete, functional, and fun Reaction Timer Game that is both educational and entertaining, perfect for TinyTapeout submission.
+GenAI tools were used to assist with refining the overall game concept, structuring the FSM implementation, and organizing test cases. The final design and implementation details were reviewed and validated to ensure correctness.
