@@ -1,25 +1,16 @@
 // TinyTapeout Wrapper for Reaction Timer Game
-// This module wraps the reaction_timer to match TinyTapeout's interface
-// Interface: io_in[7:0] = inputs, io_out[7:0] = outputs
-
-module user_module_reaction_timer (
-    input [7:0] io_in,
-    output [7:0] io_out
+module tt_um_emart155_reaction_timer (
+    input  wire [7:0] ui_in,    // Dedicated inputs
+    output wire [7:0] uo_out,   // Dedicated outputs
+    input  wire [7:0] uio_in,   // IOs: Input path
+    output wire [7:0] uio_out,  // IOs: Output path
+    output wire [7:0] uio_oe,   // IOs: Enable path
+    input  wire       ena,      // always 1 when the design is powered
+    input  wire       clk,      // clock
+    input  wire       rst_n     // reset_n - low to reset
 );
 
-    // Map TinyTapeout interface to reaction timer
-    // io_in[0] = clk (will be provided by TinyTapeout)
-    // io_in[1] = reset
-    // io_in[2] = start button
-    // io_in[3] = react_button
-    // io_in[7:4] = unused
-    
-    // io_out[0] = ready_led
-    // io_out[1] = go_led
-    // io_out[7:2] = result[5:0] (lower 6 bits of result)
-    // Note: Full 8-bit result would need more outputs, using 6 bits here
-    
-    wire clk;
+    // Internal wires
     wire reset;
     wire start;
     wire react_button;
@@ -27,14 +18,16 @@ module user_module_reaction_timer (
     wire go_led;
     wire [7:0] result;
     wire [2:0] state;
-    
-    // Extract inputs (assuming clk comes from TinyTapeout separately)
-    assign clk = io_in[0];  // May need adjustment based on TinyTapeout's clock routing
-    assign reset = io_in[1];
-    assign start = io_in[2];
-    assign react_button = io_in[3];
-    
-    // Instantiate reaction timer
+
+    // TinyTapeout uses active-low reset (rst_n). 
+    // If your reaction_timer module expects active-high, we invert it here:
+    assign reset = !rst_n; 
+
+    // Mapping inputs from ui_in
+    assign start        = ui_in[0]; 
+    assign react_button = ui_in[1];
+
+    // Instantiate your reaction timer
     reaction_timer u_reaction_timer (
         .clk(clk),
         .reset(reset),
@@ -45,10 +38,14 @@ module user_module_reaction_timer (
         .result(result),
         .state(state)
     );
-    
-    // Map outputs
-    assign io_out[0] = ready_led;
-    assign io_out[1] = go_led;
-    assign io_out[7:2] = result[5:0];  // Lower 6 bits of result
-    
+
+    // Mapping outputs to uo_out
+    assign uo_out[0] = ready_led;
+    assign uo_out[1] = go_led;
+    assign uo_out[7:2] = result[5:0]; // Lower 6 bits of result
+
+    // Unused bidirectional pins - set to inputs to be safe
+    assign uio_out = 8'b0;
+    assign uio_oe  = 8'b0;
+
 endmodule
