@@ -26,16 +26,15 @@ async def test_project(dut):
     dut._log.info("Test project behavior")
 
     # Set the input values you want to test
-    # ui_in[0] = start button, ui_in[1] = react_button
-    dut.ui_in.value = 0  # No buttons pressed initially
-    dut.uio_in.value = 0
+    dut.ui_in.value = 20
+    dut.uio_in.value = 30
 
-    # Wait for several clock cycles to let the module stabilize
-    await ClockCycles(dut.clk, 20)
+    # Wait for one clock cycle to see the output values
+    await ClockCycles(dut.clk, 1)
 
-    # Basic test: verify module is responsive
-    # After reset, reaction timer should be in IDLE state
-    # We just verify the module runs without errors
-    dut._log.info(f"Output value: {dut.uo_out.value}")
+    # The following assersion is just an example of how to check the output values.
+    # Change it to match the actual expected output of your module:
+    assert dut.uo_out.value == 50
 
-    dut._log.info("Test completed successfully")
+    # Keep testing the module by changing the input values, waiting for
+    # one or more clock cycles, and asserting the expected output values.
