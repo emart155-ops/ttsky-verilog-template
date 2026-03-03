@@ -28,9 +28,8 @@ module tb ();
 `endif
 
   // Replace tt_um_example with your module name:
-  // For the HW checks we keep the original example module here so that
-  // the provided cocotb test continues to pass.
-  tt_um_example user_project (
+  // Use your actual TinyTapeout top module so GDS / gate-level tests work.
+  tt_um_emart155_reaction_timer user_project (
 
       // Include power ports for the Gate Level test:
 `ifdef GL_TEST
