@@ -36,5 +36,5 @@ async def test_project(dut):
     # Let the design run for some cycles
     await ClockCycles(dut.clk, 50)
 
-    dut._log.info(f\"uo_out = {dut.uo_out.value}\")
-    dut._log.info(\"Reaction timer smoke test completed successfully\")
+    dut._log.info(f"uo_out = {dut.uo_out.value}")
+    dut._log.info("Reaction timer smoke test completed successfully")

@@ -15,9 +15,10 @@ project:
   top_module:  "tt_um_emart155_reaction_timer"
 
   # List your project's source files here.
+  # We only need project.v, which contains the top module and includes
+  # the reaction timer implementation.
   source_files:
-    - "reaction_timer.v"
-    - "user_module_reaction_timer.v"
+    - "project.v"
 
 # The pinout of your project. 
 pinout:

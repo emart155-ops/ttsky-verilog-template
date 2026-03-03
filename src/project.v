@@ -1,8 +1,9 @@
-// Project top-level for simulation in the TinyTapeout template test flow.
-// This defines the same top module as specified in info.yaml and wraps
-// the reaction timer design.
+// Project top-level for TinyTapeout.
+// Defines the same top module as specified in info.yaml and uses the
+// reaction timer design from reaction_timer.v.
 
 `default_nettype none
+`include "reaction_timer.v"
 
 module tt_um_emart155_reaction_timer (
     input  wire [7:0] ui_in,    // Dedicated inputs
