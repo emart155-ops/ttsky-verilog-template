@@ -1,30 +1,29 @@
 # Tiny Tapeout project information
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
+  title:        "Reaction Timer Game"      # Project title
+  author:       "Erick Martinez"           # Your name
+  discord:      ""                         # Optional
+  description:  "A game that measures reaction time to a GO signal"
+  language:     "Verilog" 
+  clock_hz:     10000000                   # 10MHz is standard, adjust if needed
 
-  # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
+  # How many tiles your design occupies.
+  tiles: "1x1"          
 
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  # Your top module name must start with "tt_um_". 
+  # Note: You should rename your module in user_module_reaction_timer.v to match this!
+  top_module:  "tt_um_emart155_reaction_timer"
 
   # List your project's source files here.
-  # Source files must be in ./src and you must list each source file separately, one per line.
-  # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
-    - "project.v"
+    - "reaction_timer.v"
+    - "user_module_reaction_timer.v"
 
-# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
-# This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
+# The pinout of your project. 
 pinout:
   # Inputs
-  ui[0]: ""
-  ui[1]: ""
+  ui[0]: "start_button"
+  ui[1]: "react_button"
   ui[2]: ""
   ui[3]: ""
   ui[4]: ""
@@ -33,14 +32,14 @@ pinout:
   ui[7]: ""
 
   # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
-  uo[4]: ""
-  uo[5]: ""
-  uo[6]: ""
-  uo[7]: ""
+  uo[0]: "ready_led"
+  uo[1]: "go_led"
+  uo[2]: "reaction_time[0]"
+  uo[3]: "reaction_time[1]"
+  uo[4]: "reaction_time[2]"
+  uo[5]: "reaction_time[3]"
+  uo[6]: "reaction_time[4]"
+  uo[7]: "reaction_time[5]"
 
   # Bidirectional pins
   uio[0]: ""
@@ -53,4 +52,4 @@ pinout:
   uio[7]: ""
 
 # Do not change!
-yaml_version: 6
+yaml_version: 6 
